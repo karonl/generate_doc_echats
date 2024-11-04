@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>每日网商系统监测</title>
+  <script type="text/JavaScript" src="echarts.js"></script>
+  <script type="text/JavaScript" src="axios.min.js"></script>
+  <script type="text/JavaScript" src="vue.js"></script>
+  <script type="text/JavaScript" src="index.js"></script>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body {
+      background-color: #f2f2f2;
+      padding: 0;
+      margin: 0;
+    }
+
+    .header {
+      display: block;
+      height: 70px;
+      width: 100%;
+      background-color: #009688;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 50px;
+      color: #9e9e9e;
+    }
+
+    #app {
+      margin: 0;
+      padding: 0;
+    }
+
+    #maincontent {
+      width: 900px;
+      padding: 30px 50px;
+      background-color: #fff;
+      display: block;
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .ytitle {
+      font-size: 26px;
+      color: #fff;
+      padding-top: 14px;
+      margin-left: 30px;
+    }
+
+    .xtitle {
+      font-size: 24px;
+      padding-top: 30px;
+      padding-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .r1 .el-alert__title {
+      font-size: 15px;
+      line-height: 24px;
+    }
+
+    .tabletitle {
+      padding: 14px;
+      text-align: center;
+      font-size: 23px;
+      color: #464646;
+      font-weight: bold;
+    }
+
+    .tttable::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 14px;
+      background: linear-gradient(270deg, #e3e3e3, rgba(0, 0, 0, 0));
+    }
+  </style>
+
+<body>
+
+  <div id="app">
+    <div id="maincontent">
+      <el-button @click="clickupdate" :loading="loading">更新每日</el-button>
+      <el-button @click="downloadword">导出 word 文档</el-button>
+      <div style="height: 10px;"></div>
+      <el-alert :title="remark" type="success" :closable="false">
+      </el-alert>
+      <div style="height: 50px;"></div>
+      <div id="main" style="width: 900px;height:350px;"></div>
+      <div id="main2" style="width: 900px;height:350px;"></div>
+      <el-table :data="tableData" border :show-header="false" :span-method="arraySpan"
+        style="width: 100%;font-size: 12px;" class="tttable">
+        <el-table-column prop="depart" width="100"></el-table-column>
+        <el-table-column prop="xszabq" width="70"></el-table-column>
+        <el-table-column prop="xszahb" width="70"></el-table-column>
+        <el-table-column prop="xszatb" width="70"></el-table-column>
+        <el-table-column prop="xsjqbq" width="70"></el-table-column>
+        <el-table-column prop="xsjqhb" width="70"></el-table-column>
+        <el-table-column prop="xsjqtb" width="70"></el-table-column>
+        <el-table-column prop="dqbq" width="70"></el-table-column>
+        <el-table-column prop="bqhb" width="70"></el-table-column>
+        <el-table-column prop="bqtb" width="70"></el-table-column>
+        <el-table-column prop="zpbq" width="70"></el-table-column>
+        <el-table-column prop="zphb" width="70"></el-table-column>
+        <el-table-column prop="zptb" width="70"></el-table-column>
+        <el-table-column prop="shbq" width="70"></el-table-column>
+        <el-table-column prop="shtb" width="70"></el-table-column>
+        <el-table-column prop="shhb" width="70"></el-table-column>
+        <el-table-column prop="odbq" width="70"></el-table-column>
+        <el-table-column prop="odhb" width="70"></el-table-column>
+        <el-table-column prop="odtb" width="70"></el-table-column>
+        <el-table-column prop="xxbq" width="70"></el-table-column>
+        <el-table-column prop="xxhb" width="75"></el-table-column>
+        <el-table-column prop="xxtb" width="75"></el-table-column>
+      </el-table>
+
+
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    new Vue({
+      el: '#app',
+      mounted: function () {
+        this.myChart = echarts.init(document.getElementById('main'));
+        this.myChart2 = echarts.init(document.getElementById('main2'));
+
+        axios.get('/doc/data').then(res => {
+          console.log(res);
+          this.remark = res.data.muban;
+          this.doctext = res.data.muban;
+
+          var option = {
+            title: {
+              text: '',
+              left: 'center',
+              textStyle: {
+                fontSize: 22
+              }
+            },
+            tooltip: {},
+            legend: {
+              bottom: 30,
+              data: ['今年数量', '去年同期']
+            },
+            xAxis: {
+              name: "",
+              data: []
+            },
+            yAxis: {
+              name: ""
+            },
+            series: [{
+              name: '今年数量',
+              type: 'line',
+              data: [],
+              itemStyle: {
+                normal: {
+                  color: '#ff5722',
+                  label: {
+                    show: true
+                  },
+                  lineStyle: {
+                    color: '#ff5722'
+                  }
+                }
+              }
+            }, {
+              name: '去年同期',
+              type: 'line',
+              data: [],
+              itemStyle: {
+                normal: {
+                  color: '#3f51b5',
+                  label: {
+                    show: true
+                  },
+                  lineStyle: {
+                    color: '#3f51b5'
+                  }
+                }
+              }
+            }]
+          };
+
+
+          option.title.text = "10月投诉类网商数据走势";
+          option.yAxis.name = "网商投诉类数";
+          var xAx = res.data['网商投诉类数'];
+          for (var i = 0; i < xAx.length; i++) {
+            option.xAxis.data.push(xAx[i][0]);
+            if (xAx[i][1] > 0) option.series[0].data.push(xAx[i][1]);
+            if (xAx[i][2] > 0) option.series[1].data.push(xAx[i][2]);
+          }
+          this.myChart.setOption(option);
+
+          option.title.text = "10月新下单用户数据走势";
+          option.yAxis.name = "新人用户数";
+          xAx = res.data['新人用户数'];
+          option.series[0].data = [];
+          option.series[1].data = [];
+          for (var i = 0; i < xAx.length; i++) {
+            if (xAx[i][1] > 0) option.series[0].data.push(xAx[i][1]);
+            if (xAx[i][2] > 0) option.series[1].data.push(xAx[i][2]);
+          }
+          this.myChart2.setOption(option);
+
+          this.tableData = res.data['分公司分类'];
+          this.candownl = true;
+        }).catch(e => {
+          console.log(e);
+        });
+
+      },
+      data: function () {
+        return {
+          visible: false,
+          remark: '',
+          tips: '',
+          updating: false,
+          loading: false,
+          doctext: '',
+          tableText: '',
+          tableData: [],
+          myChart: '',
+          myChart2: '',
+          candownl: false
+        }
+      },
+      methods: {
+        arraySpan: function ({ row, col, rowIndex, columnIndex }) {
+          if (rowIndex === 0 && columnIndex === 1) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 4) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 7) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 10) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 13) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 16) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex === 19) return { rowspan: 1, colspan: 3 };
+          else if (rowIndex === 0 && columnIndex > 0) return { rowspan: 0, colspan: 0 }
+        },
+        clickupdate: function(){
+          // 触发后台更新数据统计缓存数据。
+          this.$notify({ title: '', message: '更新成功' });
+        },
+        downloadword: function () {
+          if (this.candownl) {
+            axios.post('/doc/create', {
+              jq: this.doctext || '网页正在加载...',
+              img1: this.myChart.getDataURL(),
+              img2: this.myChart2.getDataURL(),
+              img3: this.tableData
+            }).then(res => {
+
+              const blob = new Blob([res.data]);
+              const a = document.createElement('a');
+              const url = "/output.docx";
+              a.href = url;
+              a.download = '全市网商营业数据情况截至10月.docx';
+              a.click();
+
+            }).catch(e => {
+              console.log(e);
+              this.$notify({ title: '', message: '网页加载完成后再点击生成' });
+            });
+          } else {
+            this.$notify({ title: '', message: '网页加载完成后再点击生成...' });
+          }
+        }
+      }
+    });
+
+  </script>
+</body>
+
+</html>
